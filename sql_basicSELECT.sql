@@ -140,8 +140,62 @@ ORDER by customer.name;
 /* 가격이 20,000원인 도서를 주문한 고객의 이름과 도서의 이름 검색 */
 SELECT name, bookname
 FROM customer, book, orders
-WHERE customer.custid=orders.custid and book.bookid = orders.bookid and book.price = 20000;
+WHERE customer.custid = orders.custid and book.bookid = orders.bookid and book.price = 20000;
 
-/* 도서를 구매하지 않은 고객을 포함하여 고객의 이름과 고객이 주문한 도서의 판매가격 검색 */
-SELECT customer.name, saleprice
-FROM customer lEFT OUTER JOIN orders ON customer.custid = orders.custid;
+/* 도서를 구매하지 않은 고객을 포함하여 고객의 이름과 고객이 주문한 도서의 판매가격을 검색 */
+SELECT name, saleprice
+FROM customer LEFT OUTER JOIN orders ON customer.custid = orders.custid;
+
+/* 가장 비싼 도서의 이름 */
+SELECT bookname 
+FROM book
+WHERE price = (SELECT max(price) FROM book );
+
+/* 도서를 구매한 적이 있는 고객의 이름 검색 */
+SELECT DISTINCT name
+FROM customer, orders
+WHERE customer.custid = orders.custid;
+
+SELECT name
+FROM customer
+WHERE custid in (SELECT custid FROM orders);
+
+/* 대한미디어에서 출판한 도서를 구매한 고객의 이름 검색 */
+SELECT name
+FROM customer
+where customer.custid in (SELECT custid from orders where bookid in (SELECT bookid FROM book WHERE publisher LIKE '대한미디어'));
+
+SELECT name
+FROM customer, book, orders
+WHERE book.publisher LIKE '대한미디어' and book.bookid = orders.bookid and customer.custid = orders.custid;
+
+/* 출판사별로 출판사의 평균 도서 가격보다 비싼 도서 검색 */
+SELECT b1.bookname
+FROM book b1
+WHERE b1.price > (SELECT avg(price) FROM book b2 WHERE b2.publisher = b1.publisher);
+
+/* 대한민국에 거주하는 고객의 이름과 도서를 주문한 고객의 이름 검색 */
+SELECT name 
+FROM customer
+WHERE address LIKE '%대한민국%';
+
+SELECT name
+FROM customer
+WHERE custid in (SELECT custid FROM orders);
+
+SELECT name
+FROM customer
+WHERE address LIKE '%대한민국%'
+UNION
+SELECT name
+FROM customer
+WHERE custid in (SELECT custid FROM orders);
+
+/* 주문이 있는 고객의 이름과 주소 검색 */
+SELECT name, address
+FROM customer
+WHERE custid in (SELECT custid FROM orders);
+
+SELECT name, address
+FROM customer cs
+WHERE EXISTS (SELECT * FROM orders od where od.custid = cs.custid);
